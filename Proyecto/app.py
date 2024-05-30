@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, session, url_for
+from flask import Flask, render_template, request, redirect, session, url_for, flash
 import pyodbc
 
 app = Flask(__name__)
@@ -42,12 +42,16 @@ def index():
 def login_route():
     username = request.form['username']
     password = request.form['password']
+    if not username or not password:
+        flash("Todos los campos son obligatorios.")
+        return redirect('/')
     user = login(username, password)
     if user:
         session['username'] = username
         return redirect('/admin')
     else:
-        return "Nombre de usuario o contraseña incorrectos."
+        flash("Nombre de usuario o contraseña incorrectos.")
+        return redirect('/')
 
 # Ruta para cerrar sesión
 @app.route('/logout')
@@ -65,8 +69,12 @@ def registro_page():
 def registro_route():
     username = request.form['username']
     password = request.form['password']
+    if not username or not password:
+        flash("Todos los campos son obligatorios.")
+        return redirect('/registro_page')
     registro(username, password)
-    return "Usuario registrado correctamente."
+    flash("Usuario registrado correctamente.")
+    return redirect('/')
 
 # Ruta para el panel de administración
 @app.route('/admin')
@@ -102,6 +110,9 @@ def actualizar_usuario_route(id):
         return redirect('/')
     username = request.form['username']
     password = request.form['password']
+    if not username or not password:
+        flash("Todos los campos son obligatorios.")
+        return redirect(f'/actualizar_usuario/{id}')
     cursor = conn.cursor()
     cursor.execute("UPDATE usuarios SET username = ?, password = ? WHERE id = ?", (username, password, id))
     conn.commit()
